@@ -1,0 +1,28 @@
+{
+  "name": "be_note-app",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "keywords": [ "note", "app", "restfull api" ],
+  "author": "Restu Oktafiandi",
+  "license": "ISC",
+  "description": "this is a note app with restfull api",
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "sequelize-cli": "^6.6.2"
+  },
+  "dependencies": {
+    "argon2": "^0.41.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.5",
+    "uuid": "^11.0.2"
+  }
+}
