@@ -7,7 +7,11 @@
     "dev": "nodemon app.js",
     "start": "node app.js"
   },
-  "keywords": [ "note", "app", "restfull api" ],
+  "keywords": [
+    "note",
+    "app",
+    "restfull api"
+  ],
   "author": "Restu Oktafiandi",
   "license": "ISC",
   "description": "this is a note app with restfull api",
@@ -19,6 +23,7 @@
     "argon2": "^0.41.1",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.1",
     "pg-hstore": "^2.3.4",

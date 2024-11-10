@@ -1,14 +1,16 @@
 const express = require("express")
+const helmet = require("helmet")
+const authRouter = require("./routes/authRouter.js")
 const dotenv = require("dotenv")
 dotenv.config()
 
 const app = express()
 
-app.get("/", (_, res) => {
-  res.status(200).json({
-    message: "Hello, World!"
-  })
-})
+app.use(helmet())
+app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
+
+app.use(authRouter)
 
 const PORT = process.env.PORT 
 app.listen(PORT, () => {
