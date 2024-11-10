@@ -1,0 +1,504 @@
+openapi: 3.0.3
+info:
+  title: NoteApp API
+  version: 1.0.0
+  description: API for the NoteApp with support for notes, to-do lists, and media (recordings, images, canvas doodles). Includes authentication with JWT.
+  contact:
+    name: Restu Oktafiandi
+    email: restuoktafiandi1@gmail.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses
+
+servers:
+  - url: http://localhost:3000/v1
+    description: NoteApp API Server
+
+tags:
+  - name: Authentication
+    description: Authentication endpoints
+  - name: Profile
+    description: Profile endpoints
+  - name: Notes
+    description: Note endpoints
+  - name: To-do Lists (Todos)
+    description: To-do list endpoints
+
+paths:
+  # Authentication
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterInput'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        '200':
+          description: User successfully logged in
+          headers:
+            Set-Cookie:
+              description: The JWT token stored in a cookie
+              schema:
+                type: string
+                format: cookie
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout (clear the JWT cookie)
+      responses:
+        '204':
+          description: User successfully logged out
+
+  # Profile
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: Get the logged-in user's profile information
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: Profile successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized - User not authenticated
+
+  # Notes
+  /notes:
+    get:
+      tags:
+        - Notes
+      summary: Get a list of all notes
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: Notes list successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+    post:
+      tags:
+        - Notes
+      summary: Create a new note
+      security:
+        - JWTAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteInput'
+      responses:
+        '201':
+          description: Note successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+
+  /notes/{noteId}:
+    get:
+      tags:
+        - Notes
+      summary: Get the details of a note by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Note details successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+    put:
+      tags:
+        - Notes
+      summary: Update a note by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteInput'
+      responses:
+        '200':
+          description: Note successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+    delete:
+      tags:
+        - Notes
+      summary: Delete a note by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Note successfully deleted
+
+  /notes/{noteId}/media:
+    post:
+      tags:
+        - Notes
+      summary: Upload media (recording, image, or canvas doodle) to a note
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The media file to be uploaded
+                type:
+                  type: string
+                  enum: [audio, image, canvas]
+                  description: Type of file uploaded (audio, image, or canvas)
+                description:
+                  type: string
+                  description: Optional description of the uploaded media
+      responses:
+        '201':
+          description: Media successfully uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Media'
+
+  /notes/{noteId}/media/{mediaId}:
+    get:
+      tags:
+        - Notes
+      summary: Retrieve a specific media from a note
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Media successfully retrieved and available for download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Media'
+        '404':
+          description: Media not found
+    delete:
+      tags:
+        - Notes
+      summary: Delete media from a note
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: noteId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Media successfully deleted
+
+  # To-do Lists
+  /todos:
+    get:
+      tags:
+        - "To-do Lists (Todos)"
+      summary: Get all to-do items
+      security:
+        - JWTAuth: []
+      responses:
+        '200':
+          description: To-do list successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TodoItem'
+    post:
+      tags:
+        - "To-do Lists (Todos)"
+      summary: Create a new to-do item
+      security:
+        - JWTAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoItemInput'
+      responses:
+        '201':
+          description: To-do item successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+
+  /todos/{todoId}:
+    get:
+      tags:
+        - "To-do Lists (Todos)"
+      summary: Get a to-do item by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: todoId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: To-do item successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+    put:
+      tags:
+        - "To-do Lists (Todos)"
+      summary: Update a to-do item by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: todoId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoItemInput'
+      responses:
+        '200':
+          description: To-do item successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoItem'
+    delete:
+      tags:
+        - "To-do Lists (Todos)"
+      summary: Delete a to-do item by ID
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: todoId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: To-do item successfully deleted
+
+  /todos/{todoId}/subtasks:
+    post:
+      tags:
+        - "To-do Lists (Todos)"
+      summary: Add a subtask to a to-do item
+      security:
+        - JWTAuth: []
+      parameters:
+        - name: todoId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubtaskInput'
+      responses:
+        '201':
+          description: Subtask successfully added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subtask'
+
+components:
+  securitySchemes:
+    JWTAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    LoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+    Note:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NoteInput:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+    Media:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [audio, image, canvas]
+        url:
+          type: string
+        description:
+          type: string
+    TodoItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        completed:
+          type: boolean
+    TodoItemInput:
+      type: object
+      properties:
+        content:
+          type: string
+    Subtask:
+      type: object
+      properties:
+        id:
+          type: integer
+        content:
+          type: string
+        completed:
+          type: boolean
+    SubtaskInput:
+      type: object
+      properties:
+        content:
+          type: string
